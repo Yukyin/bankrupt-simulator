@@ -35,7 +35,8 @@ canvas#scene{width:100%;height:auto;display:block;image-rendering:pixelated}
 .stat span{font-size:14px;color:var(--paper2)}
 #cash.low{color:var(--rose)}
 #cast{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
-.who{font-size:15px;background:#2b3150;border:3px solid #2b3150;padding:4px 7px;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.who{font-size:15px;line-height:1.3;background:#2b3150;border:3px solid #2b3150;padding:4px 7px;min-width:0;overflow-wrap:anywhere}
+.who small{display:block;font-size:13px;color:var(--paper2)}
 .who.on{border-color:var(--gold)}
 .who.left{opacity:.45;text-decoration:line-through}
 .bar{display:block;height:6px;background:var(--ink);margin-top:4px}
@@ -162,8 +163,8 @@ const EV=[
  {sp:'cto',narr:L('开张第一个月，办公室还闻得到新地毯的味道。','Month one. The office still smells like new carpet.'),
   line:L('老板，这个月工资能不能按时发？','Boss, will salaries go out on time this month?'),
   ch:[{t:L('再等等，我们是一家有梦想的公司','Wait a bit. We are a company with a dream'),r:R('cto','好的。我也有一个梦想，就是按时发工资。','Sure. I also have a dream. It is getting paid on time.'),fx:{cto:-30},flag:'dream'},
-      {t:L('发，今晚就发','Yes. Paying tonight'),r:R('narr','阿杰点点头，回去把离职信从草稿箱里删了。','Jay nodded, then deleted a resignation letter from his drafts.'),fx:{cash:-5,cto:15}},
-      {t:L('让猫来决定','Let the cat decide'),r:R('narr','咪总把工资条推下了桌子。旁白翻译：不发。','Whiskers pushed the payslip off the desk. Translation: no.'),fx:{cto:-20},flag:'catpay'}]},
+      {t:L('发，今晚就发','Yes. Paying tonight'),r:R('narr','Jay 点点头，回去把离职信从草稿箱里删了。','Jay nodded, then deleted a resignation letter from his drafts.'),fx:{cash:-5,cto:15}},
+      {t:L('让猫来决定','Let the cat decide'),r:R('narr','Whiskers 把工资条推下了桌子。旁白翻译：不发。','Whiskers pushed the payslip off the desk. Translation: no.'),fx:{cto:-20},flag:'catpay'}]},
  {sp:'ops',line:L('老板，我们要不要投点广告？一个月三万。','Boss, should we buy ads? Thirty grand a month.'),
   ch:[{t:L('投！','Do it'),r:R('narr','广告投出去了，来了三个客户，其中两个是竞争对手派来的。','The ads went live. Three customers came. Two were sent by competitors.'),fx:{cash:-3,cust:1}},
       {t:L('先做口碑','Word of mouth first'),r:R('ops','好的。目前口碑是零，我会继续保持。','Sure. Word of mouth is currently zero. I will keep it that way.'),fx:{ops:-10}},
@@ -171,26 +172,26 @@ const EV=[
  {sp:'inv',line:L('小老板，最近数据怎么样？我随便问问。','Young boss, how are the numbers? Just curious.'),
   ch:[{t:L('数据很好，您放心','The numbers are great'),r:R('inv','好，那我就放心地把这句话录下来了。','Great. Then I will comfortably keep a recording of that.'),fx:{},flag:'lie'},
       {t:L('说实话，不太好','Honestly, not great'),r:R('inv','我欣赏你的诚实，也欣赏我们合同里的回购条款。','I appreciate your honesty. I also appreciate the buyback clause.'),fx:{inv:-10}},
-      {t:L('您要不要再投点？','Want to invest more?'),r:R('narr','王总说要考虑一下。旁白：他考虑的是怎么撤。','Mr. Wang said he would think about it. He is thinking about the exit.'),fx:{inv:-25}}]},
+      {t:L('您要不要再投点？','Want to invest more?'),r:R('narr','Mr. Grant 说要考虑一下。旁白：他考虑的是怎么撤。','Mr. Grant said he would think about it. He is thinking about the exit.'),fx:{inv:-25}}]},
  {sp:'cto',line:L('线上崩了。我修了一整晚，现在好了。','Production went down. I fixed it overnight.'),
-  ch:[{t:L('辛苦了，这个月加钱','Thanks. Extra pay this month'),r:R('narr','阿杰愣了一下，好像没想到你会这么说。','Jay paused, clearly not expecting that.'),fx:{cash:-2,cto:15}},
-      {t:L('那你再多修几个','Then fix a few more'),r:R('narr','阿杰说好的，然后打开了招聘网站，只是看看。','Jay said sure, then opened a job site. Just browsing.'),fx:{cto:-25},flag:'overtime'},
+  ch:[{t:L('辛苦了，这个月加钱','Thanks. Extra pay this month'),r:R('narr','Jay 愣了一下，好像没想到你会这么说。','Jay paused, clearly not expecting that.'),fx:{cash:-2,cto:15}},
+      {t:L('那你再多修几个','Then fix a few more'),r:R('narr','Jay 说好的，然后打开了招聘网站，只是看看。','Jay said sure, then opened a job site. Just browsing.'),fx:{cto:-25},flag:'overtime'},
       {t:L('能不能别崩？','Can it stop crashing?'),r:R('cto','可以，只要没人用。','Sure. As long as nobody uses it.'),fx:{cto:-10}}]},
  {sp:'cat',line:L('喵。','Meow.'),narr:L('旁白翻译：它想要一个职位。','Translation: it wants a job title.'),
-  ch:[{t:L('任命它当 CTO','Make it CTO'),r:R('narr','阿杰盯着自己的工牌，看了很久。','Jay stared at his badge for a long time.'),fx:{cto:-30},flag:'catcto'},
-      {t:L('给它开工资','Put it on payroll'),r:R('narr','咪总成为公司里唯一一个工资准时到账的员工。','Whiskers became the only employee paid on time.'),fx:{cash:-1,ops:-5}},
-      {t:L('别闹，去抓老鼠','Go catch mice'),r:R('narr','咪总抓来一只老鼠，放在你的键盘上。旁白：这是本月唯一的交付。','Whiskers left a mouse on your keyboard. The only delivery this month.'),fx:{cat:-40}}]},
+  ch:[{t:L('任命它当 CTO','Make it CTO'),r:R('narr','Jay 盯着自己的工牌，看了很久。','Jay stared at his badge for a long time.'),fx:{cto:-30},flag:'catcto'},
+      {t:L('给它开工资','Put it on payroll'),r:R('narr','Whiskers 成为公司里唯一一个工资准时到账的员工。','Whiskers became the only employee paid on time.'),fx:{cash:-1,ops:-5}},
+      {t:L('别闹，去抓老鼠','Go catch mice'),r:R('narr','Whiskers 抓来一只老鼠，放在你的键盘上。旁白：这是本月唯一的交付。','Whiskers left a mouse on your keyboard. The only delivery this month.'),fx:{cat:-40}}]},
  {variants:[
   {when:s=>s.f.dream,sp:'cto',line:L('老板，第一个月你说我们是一家有梦想的公司。我想问一下，梦想交社保吗？','Boss, in month one you said we had a dream. Does the dream pay health insurance?'),grudge:true},
   {when:s=>s.f.overtime,sp:'cto',line:L('老板，上次你让我多修几个。我修好了，顺便把简历也修好了。','Boss, you asked me to fix a few more. I did. I also fixed my resume.'),grudge:true},
-  {when:s=>s.f.catcto,sp:'cto',line:L('老板，咪总今天在我的代码上睡了一下午。它说这叫代码评审。','Boss, Whiskers slept on my code all afternoon. It calls this a code review.'),grudge:true},
+  {when:s=>s.f.catcto,sp:'cto',line:L('老板，Whiskers 今天在我的代码上睡了一下午。它说这叫代码评审。','Boss, Whiskers slept on my code all afternoon. It calls this a code review.'),grudge:true},
   {when:()=>true,sp:'ops',line:L('老板，有家大公司想用我们的产品，但要先免费试用一年。','Boss, a big company wants our product, after a free one-year trial.'),
    ch:[{t:L('答应','Agree'),r:R('narr','对方法务发来一份 80 页的合同，其中 79 页是免责条款。','Their legal team sent an 80-page contract. 79 pages are disclaimers.'),fx:{cust:2,cash:-2}},
        {t:L('拒绝','Decline'),r:R('ops','好的，我去告诉他们，我们是一家有骨气的公司。','Sure. I will tell them we have principles.'),fx:{ops:-5}},
        {t:L('让他们先付钱','They pay first'),r:R('narr','对方说要考虑一下，然后把你拉黑了。','They said they would think about it, then blocked you.'),fx:{}}]}],
-  grudgeCh:[{t:L('我记得，对不起，补发奖金','I remember. Sorry. Here is a bonus'),r:R('narr','阿杰收下了奖金，但还是把这件事记在了小本本上。','Jay took the bonus, and still wrote it down in his notebook.'),fx:{cash:-4,cto:20}},
+  grudgeCh:[{t:L('我记得，对不起，补发奖金','I remember. Sorry. Here is a bonus'),r:R('narr','Jay 收下了奖金，但还是把这件事记在了小本本上。','Jay took the bonus, and still wrote it down in his notebook.'),fx:{cash:-4,cto:20}},
             {t:L('有这回事吗？','Did that happen?'),r:R('cto','有。我录音了。','It did. I recorded it.'),fx:{cto:-40}},
-            {t:L('你记性真好','You have a great memory'),r:R('narr','阿杰笑了。旁白：这是他本月第一次笑，也是最后一次。','Jay smiled. His first smile this month, and his last.'),fx:{cto:-25}}]},
+            {t:L('你记性真好','You have a great memory'),r:R('narr','Jay 笑了。旁白：这是他本月第一次笑，也是最后一次。','Jay smiled. His first smile this month, and his last.'),fx:{cto:-25}}]},
  {sp:'inv',variants:[
   {when:s=>s.f.lie,line:L('你上次说数据很好。我让财务看了一下，好的部分是字体。','You said the numbers were great. My finance team checked. The font was great.')},
   {when:()=>true,line:L('我朋友也做这个方向，他们上个月融了一千万。','My friend is in your space. They just raised ten million.')}],
@@ -199,34 +200,34 @@ const EV=[
       {t:L('把他挖过来','Poach him'),r:R('narr','他来了，带着一份 PPT，要求工位比你的大。','He came with one slide deck and asked for a bigger desk than yours.'),fx:{cash:-6,cust:2}}]},
  {sp:'ops',line:L('我们上了个小榜单，来了好多试用的人，服务器快撑不住了！','We made a small ranking. Signups are flooding in and the servers are struggling!'),
   ch:[{t:L('赶紧加服务器','Add servers now'),r:R('narr','服务器扛住了，账单也扛住了你。','The servers held. So did the bill.'),fx:{cash:-4,cust:4}},
-      {t:L('让大家通宵接住','Everyone stays up all night'),r:R('narr','大家通宵接住了。天亮时，小鹿把工位上的绿萝带回了家。','Everyone made it through the night. At dawn, Lulu took her plant home.'),fx:{cust:3,cto:-20,ops:-35}},
+      {t:L('让大家通宵接住','Everyone stays up all night'),r:R('narr','大家通宵接住了。天亮时，Lulu 把工位上的绿萝带回了家。','Everyone made it through the night. At dawn, Lulu took her plant home.'),fx:{cust:3,cto:-20,ops:-35}},
       {t:L('发朋友圈庆祝','Post about it'),r:R('narr','服务器在你发完朋友圈的第三秒崩了。','The servers crashed three seconds after you posted.'),fx:{cust:-1}}]},
  {sp:'auto',line:L('老板，年终总结会还开吗？','Boss, are we still doing the year-end review?'),
   ch:[{t:L('开，每人发一个红包','Yes. Red envelopes for everyone'),r:R('narr','红包很小，但大家都拍照发了朋友圈。','The envelopes were small, but everyone posted them.'),fx:{cash:-3,cto:10,ops:10}},
       {t:L('开，每人讲一下自己的不足','Yes. Everyone shares their weaknesses'),r:R('narr','会开了三个小时。散会时，每个人都更了解你的不足了。','The meeting ran three hours. Everyone learned a lot about your weaknesses.'),fx:{cto:-30,ops:-30}},
-      {t:L('不开了，让猫来总结','No. The cat will summarize'),r:R('narr','咪总的总结只有一个字：喵。全场掌声，因为终于下班了。','Whiskers summarized: Meow. Applause, because everyone could go home.'),fx:{cat:10}}]}
+      {t:L('不开了，让猫来总结','No. The cat will summarize'),r:R('narr','Whiskers 的总结只有一个字：喵。全场掌声，因为终于下班了。','Whiskers summarized: Meow. Applause, because everyone could go home.'),fx:{cat:10}}]}
 ];
 
 const T={
 zh:{title:'倒闭模拟器',tag:'一家公司能撑多久，取决于你怎么说话',sw:'English',sfxOn:'音效：开',sfxOff:'音效：关',
  month:'第几个月',cashL:'账上的钱',burnL:'每月净花',custL:'客户',intro:'你刚当上老板。这些人都记得你说过的每一句话。',
  name:'公司名称',what:'公司做什么',defName:'宇宙第一有限公司',defBiz:'给猫用的 AI 翻译器',noName:'无名有限公司',noBiz:'还没想好',open:'开张',next:'下个月',
- cast:{cto:['阿杰','CTO'],ops:['小鹿','运营'],inv:['王总','投资人'],cat:['咪总','猫']},narrator:'旁白',
- quit:{cto:'阿杰背着包走了，工位上留下一盆没浇水的绿萝。',ops:'小鹿把绿萝带走了，顺便带走了客户群的群主身份。',inv:'王总启动了回购条款，礼貌地拿回了十万。',cat:'咪总离家出走了，带走了公司最后一点运气。'},
+ cast:{cto:['Jay','CTO'],ops:['Lulu','运营'],inv:['Mr. Grant','投资人'],cat:['Whiskers','猫']},narrator:'旁白',
+ quit:{cto:'Jay 背着包走了，工位上留下一盆没浇水的绿萝。',ops:'Lulu 把绿萝带走了，顺便带走了客户群的群主身份。',inv:'Mr. Grant 启动了回购条款，礼貌地拿回了十万。',cat:'Whiskers 离家出走了，带走了公司最后一点运气。'},
  dead:'死亡证明',alive:'存活证明',handover:'交接证明',stampD:'已倒闭',stampA:'未倒闭',stampC:'已被猫接管',
  dN:'公司名称',dB:'主营业务',dM:'存活时间',dC:'死亡原因',dC2:'下一个难关',dC3:'交接原因',dW:'员工遗言',months:n=>n+' 个月',
- cMoneyCat:'工资由猫决定，猫决定不发',cMoneyDream:'用梦想代替工资，梦想没有到账',cMoney:'账上没钱了',cPeople:'员工全部离职，只剩老板和一只猫',cNext:'明年的工资',cCat:'咪总带领公司上市，你被董事会请出了公司',
- wCatcto:'阿杰：我输给了一只猫，但它确实不写 bug。',wDream:'阿杰：梦想很好，下次记得交社保。',wOver:'阿杰：简历我修好了，谢谢老板。',wLie:'王总：数据很好，字体尤其好。',wStar:'咪总：喵。旁白翻译：签名请找我的经纪人。',wNone:'咪总：喵。旁白翻译：猫粮也没了。',wWon:'小鹿：老板，明年我们还是一家有梦想的公司吗？',wCat:'咪总：喵。旁白翻译：感谢前任老板。',
+ cMoneyCat:'工资由猫决定，猫决定不发',cMoneyDream:'用梦想代替工资，梦想没有到账',cMoney:'账上没钱了',cPeople:'员工全部离职，只剩老板和一只猫',cNext:'明年的工资',cCat:'Whiskers 带领公司上市，你被董事会请出了公司',
+ wCatcto:'Jay：我输给了一只猫，但它确实不写 bug。',wDream:'Jay：梦想很好，下次记得交社保。',wOver:'Jay：简历我修好了，谢谢老板。',wLie:'Mr. Grant：数据很好，字体尤其好。',wStar:'Whiskers：喵。旁白翻译：签名请找我的经纪人。',wNone:'Whiskers：喵。旁白翻译：猫粮也没了。',wWon:'Lulu：老板，明年我们还是一家有梦想的公司吗？',wCat:'Whiskers：喵。旁白翻译：感谢前任老板。',
  image:'生成分享图',copy:'复制证明',copied:'复制好了',selected:'已选中，请手动复制',again:'再开一家',shotTip:'长按或右键保存这张图。',cta:'来试试你能撑几个月'},
 en:{title:'Bankrupt Simulator',tag:'How long your company lasts depends on how you talk to people.',sw:'中文',sfxOn:'Sound: on',sfxOff:'Sound: off',
  month:'Month',cashL:'In the bank',burnL:'Net monthly spend',custL:'Customers',intro:'You just became the boss. These people will remember every word you say.',
  name:'Company name',what:'What it does',defName:'Universe No. 1 Ltd.',defBiz:'An AI translator for cats',noName:'Unnamed Ltd.',noBiz:'Still figuring it out',open:'Open for business',next:'Next month',
- cast:{cto:['Jay','CTO'],ops:['Lulu','Growth'],inv:['Mr. Wang','Investor'],cat:['Whiskers','Cat']},narrator:'Narrator',
- quit:{cto:'Jay left with his backpack. A thirsty plant remains on his desk.',ops:'Lulu took the plant, and admin rights to the customer group chat.',inv:'Mr. Wang triggered the buyback clause and politely took back $100k.',cat:'Whiskers ran away, taking the last of the company luck.'},
+ cast:{cto:['Jay','CTO'],ops:['Lulu','Growth'],inv:['Mr. Grant','Investor'],cat:['Whiskers','Cat']},narrator:'Narrator',
+ quit:{cto:'Jay left with his backpack. A thirsty plant remains on his desk.',ops:'Lulu took the plant, and admin rights to the customer group chat.',inv:'Mr. Grant triggered the buyback clause and politely took back $100k.',cat:'Whiskers ran away, taking the last of the company luck.'},
  dead:'Certificate of Death',alive:'Certificate of Survival',handover:'Certificate of Handover',stampD:'BANKRUPT',stampA:'ALIVE',stampC:'RUN BY CAT',
  dN:'Company',dB:'Business',dM:'Survived',dC:'Cause of death',dC2:'Next problem',dC3:'Reason',dW:'Last words',months:n=>n+(n===1?' month':' months'),
  cMoneyCat:'Salaries were decided by a cat. The cat said no',cMoneyDream:'Paid salaries in dreams. The dreams bounced',cMoney:'Ran out of money',cPeople:'Everyone quit except the boss and a cat',cNext:'Payroll for next year',cCat:'Whiskers took the company public. The board removed you',
- wCatcto:'Jay: I lost my job to a cat. To be fair, it writes no bugs.',wDream:'Jay: The dream was nice. Next time, add health insurance.',wOver:'Jay: I fixed my resume. Thanks, boss.',wLie:'Mr. Wang: The numbers were great. Especially the font.',wStar:'Whiskers: Meow. Translation: talk to my agent.',wNone:'Whiskers: Meow. Translation: we are also out of cat food.',wWon:'Lulu: Boss, are we still a company with a dream next year?',wCat:'Whiskers: Meow. Translation: thank you, former boss.',
+ wCatcto:'Jay: I lost my job to a cat. To be fair, it writes no bugs.',wDream:'Jay: The dream was nice. Next time, add health insurance.',wOver:'Jay: I fixed my resume. Thanks, boss.',wLie:'Mr. Grant: The numbers were great. Especially the font.',wStar:'Whiskers: Meow. Translation: talk to my agent.',wNone:'Whiskers: Meow. Translation: we are also out of cat food.',wWon:'Lulu: Boss, are we still a company with a dream next year?',wCat:'Whiskers: Meow. Translation: thank you, former boss.',
  image:'Create share image',copy:'Copy certificate',copied:'Copied',selected:'Selected. Please copy manually',again:'Start another company',shotTip:'Long-press or right-click to save the image.',cta:'See how many months you can last'}
 };
 let lang=(()=>{const q=new URLSearchParams(location.search).get('lang');if(q==='zh'||q==='en')return q;try{const s=localStorage.getItem(KEY);if(s)return s}catch(e){}return(navigator.language||'').toLowerCase().startsWith('zh')?'zh':'en'})();
@@ -319,7 +320,7 @@ function bars(){
   for(const k of['cto','ops','inv','cat']){
     const st=S?S.p[k]:{m:k==='cat'?80:60,gone:false};
     const d=document.createElement('div');d.className='who'+(st.gone?' left':'')+(S&&S.speaker===k?' on':'');
-    d.textContent=nm(k)+' · '+L.cast[k][1];
+    d.textContent=nm(k);const role=document.createElement('small');role.textContent=L.cast[k][1];d.append(role);
     const bar=document.createElement('span');bar.className='bar';const i=document.createElement('i');
     i.style.width=(st.gone?0:st.m)+'%';if(st.m<30)i.className='bad';bar.append(i);d.append(bar);box.append(d);
   }
