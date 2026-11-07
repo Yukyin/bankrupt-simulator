@@ -1,8 +1,6 @@
 # Bankrupt Simulator
 
-Start a company. Pay your engineer in dreams. Put the cat in your ads. Make the cat CTO. See how long you last.
-
-A pixel-art game of nine months and nine choices, where your team remembers every word you say.
+You just opened a startup in a tiny pixel-art office. Every month someone walks in with a problem, and they remember every answer you give. See how long you last.
 
 <a href="https://yukyin.github.io/bankrupt-simulator/"><img src="assets/play.png" alt="Play" width="220"></a>
 
