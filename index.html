@@ -1,0 +1,461 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="一个像素风的开公司小游戏。9 个月，每月一个选择，看你的公司能撑多久。">
+<title>倒闭模拟器</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@500;700&family=Silkscreen&family=ZCOOL+QingKe+HuangYou&display=swap">
+<style>
+:root{
+  --night:#1b2036; --ink:#20182b; --paper:#f4e6c8; --paper2:#e4cfa3;
+  --gold:#f2b63c; --rose:#d9485f; --mint:#58b58a; --mute:#a9a2b8;
+  --cn:"Noto Sans SC","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  --title:"ZCOOL QingKe HuangYou","Silkscreen","Noto Sans SC",sans-serif;
+  --num:"Silkscreen","Noto Sans SC",monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--night);color:var(--paper);font-family:var(--cn);font-weight:500;font-size:18px;line-height:1.6;-webkit-tap-highlight-color:transparent;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:16px 28px}
+#app{max-width:560px;margin:0 auto;display:flex;flex-direction:column;gap:10px}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+h1{margin:0;font-family:var(--title);font-size:32px;font-weight:400;color:var(--gold);letter-spacing:.04em;text-shadow:3px 3px 0 var(--ink)}
+#company{color:var(--paper);font-size:16px;min-width:0;flex-basis:100%;order:3}
+#lang,#sfx{appearance:none;font:inherit;font-size:15px;color:var(--ink);background:var(--paper2);border:3px solid var(--ink);padding:2px 10px;cursor:pointer}
+#stage{position:relative;border:4px solid var(--ink);box-shadow:0 0 0 3px var(--paper2);background:#000;line-height:0}
+canvas#scene{width:100%;height:auto;display:block;image-rendering:pixelated}
+#stage.shake{animation:shake .4s steps(4)}
+@keyframes shake{25%{transform:translate(-5px,2px)}50%{transform:translate(4px,-3px)}75%{transform:translate(-3px,-1px)}}
+#ledger{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.stat{background:var(--ink);padding:6px 8px;min-width:0}
+.stat b{display:block;font-family:var(--num);font-weight:400;font-size:16px;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stat span{font-size:14px;color:var(--paper2)}
+#cash.low{color:var(--rose)}
+#cast{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.who{font-size:15px;background:#2b3150;border:3px solid #2b3150;padding:4px 7px;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.who.on{border-color:var(--gold)}
+.who.left{opacity:.45;text-decoration:line-through}
+.bar{display:block;height:6px;background:var(--ink);margin-top:4px}
+.bar i{display:block;height:100%;background:var(--mint);transition:width .4s steps(6)}
+.bar i.bad{background:var(--rose)}
+#box{background:var(--paper);color:var(--ink);border:4px solid var(--ink);box-shadow:0 0 0 3px var(--paper2);padding:12px;display:flex;flex-direction:column;gap:10px}
+#play{display:grid;gap:10px}
+#talk{display:grid;grid-template-columns:64px minmax(0,1fr);gap:12px;min-height:110px;cursor:pointer}
+canvas#face{width:64px;height:64px;image-rendering:pixelated;background:var(--paper2);border:3px solid var(--ink)}
+#speaker{font-size:18px;font-weight:700;color:#7a2f0c}
+#narr{font-size:16px;color:#4a3b30;min-height:1.4em}
+#line{font-size:20px;font-weight:700;min-height:1.6em;overflow-wrap:anywhere}
+#choices{display:grid;gap:8px}
+.opt{appearance:none;font:inherit;font-size:17px;font-weight:700;background:var(--paper2);color:var(--ink);border:3px solid var(--ink);padding:10px 12px;min-height:48px;cursor:pointer;text-align:left;box-shadow:3px 3px 0 var(--ink)}
+.opt:hover{background:var(--gold)}
+.opt:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink)}
+.opt b{font-family:var(--num);font-weight:400;margin-right:8px;color:#7a2f0c}
+button:focus-visible,input:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+input[type=text]{font:inherit;width:100%;background:#fffaf0;color:var(--ink);border:3px solid var(--ink);padding:7px 9px;border-radius:0;min-width:0}
+.go{appearance:none;font:inherit;font-weight:700;background:var(--rose);color:#fff7e6;border:3px solid var(--ink);padding:9px 18px;min-height:46px;cursor:pointer;box-shadow:3px 3px 0 var(--ink)}
+.go:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink)}
+.ghost{background:var(--paper2);color:var(--ink)}
+#start{display:grid;gap:10px}
+#start label{display:grid;gap:3px;font-size:16px;color:#4a3b30}
+#start p{margin:0;font-size:18px}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+#cert{position:relative;background:#fbf3df;border:3px double var(--ink);padding:14px 16px;display:grid;gap:6px;overflow:hidden}
+#cert h2{margin:0;font-family:var(--title);font-weight:400;font-size:26px;letter-spacing:.1em;padding-right:130px}
+#cert dl{margin:0;display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 12px}
+#cert dt{color:#4a3b30}#cert dd{margin:0;overflow-wrap:anywhere}
+#stamp{position:absolute;right:12px;top:10px;border:4px solid var(--rose);color:var(--rose);font-family:var(--title);font-size:22px;padding:0 8px;transform:rotate(-10deg);opacity:.85}
+#shot{display:grid;gap:6px;margin-top:10px}
+#shot img{width:100%;max-width:100%;border:3px solid var(--ink)}
+#shot p{margin:0;font-size:16px;color:#4a3b30}
+@media (max-width:420px){#ledger,#cast{grid-template-columns:repeat(2,minmax(0,1fr))}h1{font-size:26px}#cert h2{padding-right:0;padding-top:34px}}
+@media (prefers-reduced-motion:reduce){#stage.shake{animation:none}.bar i{transition:none}}
+</style>
+
+</head>
+<body>
+<div id="app">
+  <header><h1 id="h1"></h1><span class="row" style="gap:8px"><button id="sfx" type="button"></button><button id="lang" type="button"></button></span><div id="company"></div></header>
+  <div id="stage"><canvas id="scene" width="320" height="150" aria-hidden="true"></canvas></div>
+  <div id="ledger">
+    <div class="stat"><b id="month">1/9</b><span id="lMonth"></span></div>
+    <div class="stat"><b id="cash"></b><span id="lCash"></span></div>
+    <div class="stat"><b id="burn"></b><span id="lBurn"></span></div>
+    <div class="stat"><b id="cust">0</b><span id="lCust"></span></div>
+  </div>
+  <div id="cast"></div>
+  <div id="box">
+    <div id="start">
+      <p id="intro"></p>
+      <label for="cname"><span id="lName"></span><input id="cname" type="text" maxlength="24"></label>
+      <label for="cbiz"><span id="lWhat"></span><input id="cbiz" type="text" maxlength="50"></label>
+      <div class="row"><button class="go" id="open" type="button"></button></div>
+    </div>
+    <div id="play" hidden>
+      <div id="talk">
+        <canvas id="face" width="16" height="16" aria-hidden="true"></canvas>
+        <div style="min-width:0">
+          <div id="speaker"></div>
+          <div id="narr"></div>
+          <div id="line" aria-live="polite"></div>
+        </div>
+      </div>
+      <div id="choices"></div>
+    </div>
+    <div id="end" hidden>
+      <div id="cert">
+        <div id="stamp"></div>
+        <h2 id="certTitle"></h2>
+        <dl>
+          <dt id="dN"></dt><dd id="cN"></dd>
+          <dt id="dB"></dt><dd id="cB"></dd>
+          <dt id="dM"></dt><dd id="cM"></dd>
+          <dt id="dC"></dt><dd id="cC"></dd>
+          <dt id="dW"></dt><dd id="cW"></dd>
+        </dl>
+      </div>
+      <div class="row" style="margin-top:10px"><button class="go" id="image" type="button"></button><button class="go ghost" id="copy" type="button"></button><button class="go ghost" id="again" type="button"></button></div>
+      <div id="shot" hidden><img id="shotImg" alt=""><p id="shotTip"></p></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
+const KEY='bankrupt-sim-lang',SITE=location.host&&location.host.endsWith('github.io')?location.host+location.pathname.replace(/index\.html$/,''):'yukyin.github.io/bankrupt-simulator';
+const SFX=(()=>{let ac=null,on=true;try{on=localStorage.getItem('bankrupt-sim-sfx')!=='off'}catch(e){}
+  function ctx(){if(!ac){const A=window.AudioContext||window.webkitAudioContext;if(!A)return null;try{if(navigator.audioSession)navigator.audioSession.type='playback'}catch(e){}ac=new A()}if(ac.state==='suspended')ac.resume();return ac}
+  function tone(f,d,o={}){const a=on&&ctx();if(!a)return;const t0=a.currentTime+(o.at||0),os=a.createOscillator(),g=a.createGain();os.type=o.type||'square';os.frequency.setValueAtTime(f,t0);if(o.to)os.frequency.exponentialRampToValueAtTime(o.to,t0+d);g.gain.setValueAtTime(o.v||.05,t0);g.gain.exponentialRampToValueAtTime(.0001,t0+d);os.connect(g);g.connect(a.destination);os.start(t0);os.stop(t0+d+.03)}
+  function noise(d,v){const a=on&&ctx();if(!a)return;const b=a.createBuffer(1,Math.floor(a.sampleRate*d),a.sampleRate),x=b.getChannelData(0);for(let i=0;i<x.length;i++)x[i]=(Math.random()*2-1)*(1-i/x.length);const n=a.createBufferSource(),g=a.createGain();g.gain.value=v;n.buffer=b;n.connect(g);g.connect(a.destination);n.start()}
+  const seq=(ns,st,o={})=>ns.forEach((f,i)=>{if(f)tone(f,st*.9,{...o,at:(o.at||0)+i*st})});
+  const VOICE={cto:330,ops:520,inv:196,narr:262};
+  return{get on(){return on},
+    toggle(){on=!on;try{localStorage.setItem('bankrupt-sim-sfx',on?'on':'off')}catch(e){}if(on)this.pick()},
+    unlock(){if(on)ctx()},
+    blip(sp){tone((VOICE[sp]||300)*(.94+Math.random()*.12),.035,{v:.022})},
+    pick(){seq([660,990],.05,{v:.05})},
+    next(){tone(523,.06,{v:.04})},
+    open(){seq([523,659,784],.08,{v:.05})},
+    coin(){seq([988,1319],.08,{v:.05,at:.12})},
+    loss(){seq([392,262],.1,{type:'triangle',v:.09,at:.12})},
+    shake(){noise(.3,.12)},
+    meow(){tone(650,.22,{type:'triangle',v:.12,to:1050});tone(1050,.32,{type:'triangle',v:.12,to:520,at:.2})},
+    quit(){seq([392,349,294,0,196],.17,{type:'triangle',v:.1})},
+    dead(){seq([392,370,349,330,0,262,0,196],.22,{type:'triangle',v:.1})},
+    won(o){seq([523,659,784,1047,0,784,1047],.11,{v:.06,...o})},
+    cat(){this.meow();this.won({at:.7})}}
+})();
+const L=(zh,en)=>({zh,en});
+const R=(sp,zh,en)=>({sp,zh,en});
+const LOOK={
+  cto:{x:58,y:92,hair:'#22202c',skin:'#f0c39a',shirt:'#3f8f6b',leg:'#2d3350',glasses:true,salary:2.5},
+  ops:{x:252,y:92,hair:'#8c3f2b',skin:'#f6cfa8',shirt:'#e7a93a',leg:'#4b3a5e',long:true,salary:1.5},
+  inv:{x:298,y:70,hair:'#8d8d9a',skin:'#e6b48e',shirt:'#2c2a3a',leg:'#2c2a3a',tie:true,salary:0},
+  cat:{x:120,y:128,salary:0}
+};
+const ME={hair:'#2d2342',skin:'#f6cfa8',shirt:'#d9485f',leg:'#27304f',long:true};
+
+const EV=[
+ {sp:'cto',narr:L('开张第一个月，办公室还闻得到新地毯的味道。','Month one. The office still smells like new carpet.'),
+  line:L('老板，这个月工资能不能按时发？','Boss, will salaries go out on time this month?'),
+  ch:[{t:L('再等等，我们是一家有梦想的公司','Wait a bit. We are a company with a dream'),r:R('cto','好的。我也有一个梦想，就是按时发工资。','Sure. I also have a dream. It is getting paid on time.'),fx:{cto:-30},flag:'dream'},
+      {t:L('发，今晚就发','Yes. Paying tonight'),r:R('narr','阿杰点点头，回去把离职信从草稿箱里删了。','Jay nodded, then deleted a resignation letter from his drafts.'),fx:{cash:-5,cto:15}},
+      {t:L('让猫来决定','Let the cat decide'),r:R('narr','咪总把工资条推下了桌子。旁白翻译：不发。','Whiskers pushed the payslip off the desk. Translation: no.'),fx:{cto:-20},flag:'catpay'}]},
+ {sp:'ops',line:L('老板，我们要不要投点广告？一个月三万。','Boss, should we buy ads? Thirty grand a month.'),
+  ch:[{t:L('投！','Do it'),r:R('narr','广告投出去了，来了三个客户，其中两个是竞争对手派来的。','The ads went live. Three customers came. Two were sent by competitors.'),fx:{cash:-3,cust:1}},
+      {t:L('先做口碑','Word of mouth first'),r:R('ops','好的。目前口碑是零，我会继续保持。','Sure. Word of mouth is currently zero. I will keep it that way.'),fx:{ops:-10}},
+      {t:L('让猫出镜','Put the cat in the ad'),r:R('narr','视频火了。评论区都在问猫卖不卖。','The video went viral. Every comment asks if the cat is for sale.'),fx:{cust:3},flag:'catstar'}]},
+ {sp:'inv',line:L('小老板，最近数据怎么样？我随便问问。','Young boss, how are the numbers? Just curious.'),
+  ch:[{t:L('数据很好，您放心','The numbers are great'),r:R('inv','好，那我就放心地把这句话录下来了。','Great. Then I will comfortably keep a recording of that.'),fx:{},flag:'lie'},
+      {t:L('说实话，不太好','Honestly, not great'),r:R('inv','我欣赏你的诚实，也欣赏我们合同里的回购条款。','I appreciate your honesty. I also appreciate the buyback clause.'),fx:{inv:-10}},
+      {t:L('您要不要再投点？','Want to invest more?'),r:R('narr','王总说要考虑一下。旁白：他考虑的是怎么撤。','Mr. Wang said he would think about it. He is thinking about the exit.'),fx:{inv:-25}}]},
+ {sp:'cto',line:L('线上崩了。我修了一整晚，现在好了。','Production went down. I fixed it overnight.'),
+  ch:[{t:L('辛苦了，这个月加钱','Thanks. Extra pay this month'),r:R('narr','阿杰愣了一下，好像没想到你会这么说。','Jay paused, clearly not expecting that.'),fx:{cash:-2,cto:15}},
+      {t:L('那你再多修几个','Then fix a few more'),r:R('narr','阿杰说好的，然后打开了招聘网站，只是看看。','Jay said sure, then opened a job site. Just browsing.'),fx:{cto:-25},flag:'overtime'},
+      {t:L('能不能别崩？','Can it stop crashing?'),r:R('cto','可以，只要没人用。','Sure. As long as nobody uses it.'),fx:{cto:-10}}]},
+ {sp:'cat',line:L('喵。','Meow.'),narr:L('旁白翻译：它想要一个职位。','Translation: it wants a job title.'),
+  ch:[{t:L('任命它当 CTO','Make it CTO'),r:R('narr','阿杰盯着自己的工牌，看了很久。','Jay stared at his badge for a long time.'),fx:{cto:-30},flag:'catcto'},
+      {t:L('给它开工资','Put it on payroll'),r:R('narr','咪总成为公司里唯一一个工资准时到账的员工。','Whiskers became the only employee paid on time.'),fx:{cash:-1,ops:-5}},
+      {t:L('别闹，去抓老鼠','Go catch mice'),r:R('narr','咪总抓来一只老鼠，放在你的键盘上。旁白：这是本月唯一的交付。','Whiskers left a mouse on your keyboard. The only delivery this month.'),fx:{cat:-40}}]},
+ {variants:[
+  {when:s=>s.f.dream,sp:'cto',line:L('老板，第一个月你说我们是一家有梦想的公司。我想问一下，梦想交社保吗？','Boss, in month one you said we had a dream. Does the dream pay health insurance?'),grudge:true},
+  {when:s=>s.f.overtime,sp:'cto',line:L('老板，上次你让我多修几个。我修好了，顺便把简历也修好了。','Boss, you asked me to fix a few more. I did. I also fixed my resume.'),grudge:true},
+  {when:s=>s.f.catcto,sp:'cto',line:L('老板，咪总今天在我的代码上睡了一下午。它说这叫代码评审。','Boss, Whiskers slept on my code all afternoon. It calls this a code review.'),grudge:true},
+  {when:()=>true,sp:'ops',line:L('老板，有家大公司想用我们的产品，但要先免费试用一年。','Boss, a big company wants our product, after a free one-year trial.'),
+   ch:[{t:L('答应','Agree'),r:R('narr','对方法务发来一份 80 页的合同，其中 79 页是免责条款。','Their legal team sent an 80-page contract. 79 pages are disclaimers.'),fx:{cust:2,cash:-2}},
+       {t:L('拒绝','Decline'),r:R('ops','好的，我去告诉他们，我们是一家有骨气的公司。','Sure. I will tell them we have principles.'),fx:{ops:-5}},
+       {t:L('让他们先付钱','They pay first'),r:R('narr','对方说要考虑一下，然后把你拉黑了。','They said they would think about it, then blocked you.'),fx:{}}]}],
+  grudgeCh:[{t:L('我记得，对不起，补发奖金','I remember. Sorry. Here is a bonus'),r:R('narr','阿杰收下了奖金，但还是把这件事记在了小本本上。','Jay took the bonus, and still wrote it down in his notebook.'),fx:{cash:-4,cto:20}},
+            {t:L('有这回事吗？','Did that happen?'),r:R('cto','有。我录音了。','It did. I recorded it.'),fx:{cto:-40}},
+            {t:L('你记性真好','You have a great memory'),r:R('narr','阿杰笑了。旁白：这是他本月第一次笑，也是最后一次。','Jay smiled. His first smile this month, and his last.'),fx:{cto:-25}}]},
+ {sp:'inv',variants:[
+  {when:s=>s.f.lie,line:L('你上次说数据很好。我让财务看了一下，好的部分是字体。','You said the numbers were great. My finance team checked. The font was great.')},
+  {when:()=>true,line:L('我朋友也做这个方向，他们上个月融了一千万。','My friend is in your space. They just raised ten million.')}],
+  ch:[{t:L('我们也融','We should raise too'),r:R('inv','可以，我认识一个人，他专门投快倒闭的公司。','Sure. I know a guy who only invests in companies about to die.'),fx:{cash:15,inv:-20}},
+      {t:L('那是泡沫','That is a bubble'),r:R('narr','三天后，泡沫收购了隔壁一家和你一模一样的公司。','Three days later, the bubble acquired a company exactly like yours.'),fx:{inv:-10}},
+      {t:L('把他挖过来','Poach him'),r:R('narr','他来了，带着一份 PPT，要求工位比你的大。','He came with one slide deck and asked for a bigger desk than yours.'),fx:{cash:-6,cust:2}}]},
+ {sp:'ops',line:L('我们上了个小榜单，来了好多试用的人，服务器快撑不住了！','We made a small ranking. Signups are flooding in and the servers are struggling!'),
+  ch:[{t:L('赶紧加服务器','Add servers now'),r:R('narr','服务器扛住了，账单也扛住了你。','The servers held. So did the bill.'),fx:{cash:-4,cust:4}},
+      {t:L('让大家通宵接住','Everyone stays up all night'),r:R('narr','大家通宵接住了。天亮时，小鹿把工位上的绿萝带回了家。','Everyone made it through the night. At dawn, Lulu took her plant home.'),fx:{cust:3,cto:-20,ops:-35}},
+      {t:L('发朋友圈庆祝','Post about it'),r:R('narr','服务器在你发完朋友圈的第三秒崩了。','The servers crashed three seconds after you posted.'),fx:{cust:-1}}]},
+ {sp:'auto',line:L('老板，年终总结会还开吗？','Boss, are we still doing the year-end review?'),
+  ch:[{t:L('开，每人发一个红包','Yes. Red envelopes for everyone'),r:R('narr','红包很小，但大家都拍照发了朋友圈。','The envelopes were small, but everyone posted them.'),fx:{cash:-3,cto:10,ops:10}},
+      {t:L('开，每人讲一下自己的不足','Yes. Everyone shares their weaknesses'),r:R('narr','会开了三个小时。散会时，每个人都更了解你的不足了。','The meeting ran three hours. Everyone learned a lot about your weaknesses.'),fx:{cto:-30,ops:-30}},
+      {t:L('不开了，让猫来总结','No. The cat will summarize'),r:R('narr','咪总的总结只有一个字：喵。全场掌声，因为终于下班了。','Whiskers summarized: Meow. Applause, because everyone could go home.'),fx:{cat:10}}]}
+];
+
+const T={
+zh:{title:'倒闭模拟器',tag:'一家公司能撑多久，取决于你怎么说话',sw:'English',sfxOn:'音效：开',sfxOff:'音效：关',
+ month:'第几个月',cashL:'账上的钱',burnL:'每月净花',custL:'客户',intro:'你刚当上老板。这些人都记得你说过的每一句话。',
+ name:'公司名称',what:'公司做什么',defName:'宇宙第一有限公司',defBiz:'给猫用的 AI 翻译器',noName:'无名有限公司',noBiz:'还没想好',open:'开张',next:'下个月',
+ cast:{cto:['阿杰','CTO'],ops:['小鹿','运营'],inv:['王总','投资人'],cat:['咪总','猫']},narrator:'旁白',
+ quit:{cto:'阿杰背着包走了，工位上留下一盆没浇水的绿萝。',ops:'小鹿把绿萝带走了，顺便带走了客户群的群主身份。',inv:'王总启动了回购条款，礼貌地拿回了十万。',cat:'咪总离家出走了，带走了公司最后一点运气。'},
+ dead:'死亡证明',alive:'存活证明',handover:'交接证明',stampD:'已倒闭',stampA:'未倒闭',stampC:'已被猫接管',
+ dN:'公司名称',dB:'主营业务',dM:'存活时间',dC:'死亡原因',dC2:'下一个难关',dC3:'交接原因',dW:'员工遗言',months:n=>n+' 个月',
+ cMoneyCat:'工资由猫决定，猫决定不发',cMoneyDream:'用梦想代替工资，梦想没有到账',cMoney:'账上没钱了',cPeople:'员工全部离职，只剩老板和一只猫',cNext:'明年的工资',cCat:'咪总带领公司上市，你被董事会请出了公司',
+ wCatcto:'阿杰：我输给了一只猫，但它确实不写 bug。',wDream:'阿杰：梦想很好，下次记得交社保。',wOver:'阿杰：简历我修好了，谢谢老板。',wLie:'王总：数据很好，字体尤其好。',wStar:'咪总：喵。旁白翻译：签名请找我的经纪人。',wNone:'咪总：喵。旁白翻译：猫粮也没了。',wWon:'小鹿：老板，明年我们还是一家有梦想的公司吗？',wCat:'咪总：喵。旁白翻译：感谢前任老板。',
+ image:'生成分享图',copy:'复制证明',copied:'复制好了',selected:'已选中，请手动复制',again:'再开一家',shotTip:'长按或右键保存这张图。',cta:'来试试你能撑几个月'},
+en:{title:'Bankrupt Simulator',tag:'How long your company lasts depends on how you talk to people.',sw:'中文',sfxOn:'Sound: on',sfxOff:'Sound: off',
+ month:'Month',cashL:'In the bank',burnL:'Net monthly spend',custL:'Customers',intro:'You just became the boss. These people will remember every word you say.',
+ name:'Company name',what:'What it does',defName:'Universe No. 1 Ltd.',defBiz:'An AI translator for cats',noName:'Unnamed Ltd.',noBiz:'Still figuring it out',open:'Open for business',next:'Next month',
+ cast:{cto:['Jay','CTO'],ops:['Lulu','Growth'],inv:['Mr. Wang','Investor'],cat:['Whiskers','Cat']},narrator:'Narrator',
+ quit:{cto:'Jay left with his backpack. A thirsty plant remains on his desk.',ops:'Lulu took the plant, and admin rights to the customer group chat.',inv:'Mr. Wang triggered the buyback clause and politely took back $100k.',cat:'Whiskers ran away, taking the last of the company luck.'},
+ dead:'Certificate of Death',alive:'Certificate of Survival',handover:'Certificate of Handover',stampD:'BANKRUPT',stampA:'ALIVE',stampC:'RUN BY CAT',
+ dN:'Company',dB:'Business',dM:'Survived',dC:'Cause of death',dC2:'Next problem',dC3:'Reason',dW:'Last words',months:n=>n+(n===1?' month':' months'),
+ cMoneyCat:'Salaries were decided by a cat. The cat said no',cMoneyDream:'Paid salaries in dreams. The dreams bounced',cMoney:'Ran out of money',cPeople:'Everyone quit except the boss and a cat',cNext:'Payroll for next year',cCat:'Whiskers took the company public. The board removed you',
+ wCatcto:'Jay: I lost my job to a cat. To be fair, it writes no bugs.',wDream:'Jay: The dream was nice. Next time, add health insurance.',wOver:'Jay: I fixed my resume. Thanks, boss.',wLie:'Mr. Wang: The numbers were great. Especially the font.',wStar:'Whiskers: Meow. Translation: talk to my agent.',wNone:'Whiskers: Meow. Translation: we are also out of cat food.',wWon:'Lulu: Boss, are we still a company with a dream next year?',wCat:'Whiskers: Meow. Translation: thank you, former boss.',
+ image:'Create share image',copy:'Copy certificate',copied:'Copied',selected:'Selected. Please copy manually',again:'Start another company',shotTip:'Long-press or right-click to save the image.',cta:'See how many months you can last'}
+};
+let lang=(()=>{const q=new URLSearchParams(location.search).get('lang');if(q==='zh'||q==='en')return q;try{const s=localStorage.getItem(KEY);if(s)return s}catch(e){}return(navigator.language||'').toLowerCase().startsWith('zh')?'zh':'en'})();
+const t=()=>T[lang];
+const nm=k=>t().cast[k][0];
+let S=null,typing=null,walk={},floats=[],tick=0,view=null,endInfo=null;
+const TOTAL=EV.length;
+
+function fresh(name,biz){return{name,biz,month:1,cash:36,cust:0,i:0,f:{},
+  p:{cto:{m:60,gone:false},ops:{m:60,gone:false},inv:{m:60,gone:false},cat:{m:80,gone:false}},hist:[36],speaker:'cto'}}
+const burn=()=>{let b=2;for(const k of['cto','ops'])if(!S.p[k].gone)b+=LOOK[k].salary;return b};
+const net=()=>Math.round((S.cust*0.6-burn())*10)/10;
+const money=v=>{const r=Math.round(v*10)/10,s=r<0?'-':'',a=Math.abs(r);return lang==='zh'?s+'¥'+a+'万':s+'$'+Math.round(a*10)+'k'};
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+
+const c=$('scene').getContext('2d');
+const RR=(x,y,w,h,col,g=c)=>{g.fillStyle=col;g.fillRect(Math.round(x),Math.round(y),w,h)};
+function person(p,x,y,opt={},g=c){
+  const b=opt.bob?1:0;y-=b;
+  RR(x+1,y+22+b,4,3,p.leg,g);RR(x+7,y+22+b,4,3,p.leg,g);
+  RR(x,y+11,12,11,p.shirt,g);
+  if(p.tie)RR(x+5,y+11,2,7,'#d9485f',g);
+  RR(x-2,y+12,2,7,p.shirt,g);RR(x+12,y+12,2,7,p.shirt,g);
+  RR(x+1,y+2,10,9,p.skin,g);RR(x+1,y,10,4,p.hair,g);
+  if(p.long){RR(x-1,y+1,2,12,p.hair,g);RR(x+11,y+1,2,12,p.hair,g)}
+  RR(x+3,y+5,2,2,'#20182b',g);RR(x+7,y+5,2,2,'#20182b',g);
+  if(p.glasses){RR(x+2,y+4,4,1,'#20182b',g);RR(x+6,y+4,4,1,'#20182b',g)}
+  RR(x+4,y+9,4,opt.talk?2:1,opt.sad?'#6b3a3a':'#a8574a',g);
+}
+function kitty(x,y,face,g=c){
+  const f='#8a8f9c',d='#5d616e';
+  RR(x+2,y+4,11,6,f,g);RR(x+2,y+6,11,1,d,g);RR(x+2,y+8,11,1,d,g);
+  RR(x+3,y+10,2,2,f,g);RR(x+10,y+10,2,2,f,g);
+  const hx=face>0?x+10:x-2;
+  RR(hx,y,7,6,f,g);RR(hx,y-2,2,2,f,g);RR(hx+5,y-2,2,2,f,g);
+  RR(hx+1,y+2,1,1,'#f2b63c',g);RR(hx+5,y+2,1,1,'#f2b63c',g);RR(hx+3,y+4,1,1,'#d9485f',g);
+  const tx=face>0?x:x+13;RR(tx,y+1,2,4,d,g);
+}
+function desk(x,y){
+  RR(x,y+8,40,5,'#9a6a3f');RR(x,y+13,40,2,'#6f4a2c');RR(x+2,y+15,3,10,'#6f4a2c');RR(x+35,y+15,3,10,'#6f4a2c');
+  RR(x+11,y-6,18,12,'#20182b');const on=(tick>>4)%3;RR(x+13,y-4,14,8,on?'#6f8fd8':'#58b58a');
+  for(let i=0;i<3;i++)RR(x+14,y-3+i*2,4+((tick>>3)+i*3)%9,1,'#fff7e6');RR(x+18,y+6,4,2,'#20182b');
+}
+function room(){
+  RR(0,0,320,86,'#40507a');RR(0,0,320,4,'#2c3656');RR(0,86,320,64,'#5e4530');
+  for(let x=-16;x<320;x+=16)for(let y=86;y<150;y+=8)RR(x+(y%16?8:0),y,15,7,((x+16>>4)+(y>>3))%2?'#8c6a4a':'#7f5e41');
+  RR(0,84,320,3,'#2c3656');
+  RR(14,14,70,46,'#20182b');RR(16,16,66,42,'#27305a');RR(66,20,8,8,'#f4e6c8');RR(68,22,8,8,'#27305a');
+  [[18,34,12],[32,26,10],[44,38,14],[60,30,12]].forEach(([x,y,w],i)=>{RR(x,y,w,58-y,'#151a33');
+    for(let a=0;a<3;a++)for(let b=0;b<3;b++)if((a*3+b+i+(tick>>6))%4)RR(x+2+a*3,y+3+b*5,1,2,'#f2b63c')});
+  RR(48,16,2,42,'#20182b');
+  RR(110,12,88,50,'#20182b');RR(112,14,84,46,'#f4f1e6');
+  const h=S?S.hist:[36],mx=Math.max(36,...h);
+  h.forEach((v,i)=>{const px=116+i*76/TOTAL,py=56-Math.max(0,v)/mx*38;RR(px,py,3,3,v<15?'#d9485f':'#3f8f6b')});
+  RR(114,57,80,1,'#8a8f9c');
+  RR(286,30,28,57,'#20182b');RR(288,32,24,55,'#6f4a2c');RR(306,58,3,3,'#f2b63c');
+  RR(92,74,12,12,'#b5553a');for(let i=0;i<6;i++)RR(90+i*3,62+(i%3)*4,4,12,i%2?'#3f8f6b':'#58b58a');
+}
+function draw(){
+  tick++;room();
+  const sp=S?S.speaker:'cto';
+  desk(44,104);desk(238,104);
+  ['cto','ops','inv'].forEach(k=>{
+    if(!S&&k==='inv')return;
+    const p=LOOK[k],st=S?S.p[k]:{gone:false,m:60};
+    if(st.gone&&!walk[k])return;
+    if(k==='inv'&&sp!=='inv'&&!walk[k])return;
+    let x=walk[k]?walk[k].x:p.x;const y=p.y-24;
+    if(walk[k]){walk[k].x+=1.1;if(walk[k].x>296){delete walk[k];return}}
+    person(p,x,y,{bob:!reduce&&!!walk[k]&&(tick>>2)%2,talk:sp===k&&typing&&(tick>>2)%2,sad:st.m<30});
+    if(S&&sp===k&&!walk[k]){RR(x+4,y-7,4,3,'#f2b63c');RR(x+5,y-4,2,2,'#f2b63c')}
+  });
+  person(ME,152,102,{bob:!reduce&&(tick>>5)%2});
+  if(!S||!S.p.cat.gone){
+    const tm=reduce?0:tick/90,cx=120+Math.sin(tm)*48,dir=Math.cos(tm)>0?1:-1;
+    kitty(cx,128,dir);if(S&&sp==='cat'){RR(cx+6,119,4,3,'#f2b63c');RR(cx+7,122,2,2,'#f2b63c')}
+  }
+  c.font='8px Silkscreen,monospace';c.textAlign='center';
+  floats=floats.filter(f=>f.life>0);floats.forEach(f=>{c.fillStyle=f.col;c.fillText(f.txt,f.x,f.y);f.y-=.3;f.life--});
+  requestAnimationFrame(draw);
+}
+function drawFace(k){
+  const g=$('face').getContext('2d');g.clearRect(0,0,16,16);
+  if(k==='cat'){kitty(2,4,1,g);return}
+  person(LOOK[k]||ME,2,2,{},g);
+}
+
+function bars(){
+  const L=t(),box=$('cast');box.textContent='';
+  for(const k of['cto','ops','inv','cat']){
+    const st=S?S.p[k]:{m:k==='cat'?80:60,gone:false};
+    const d=document.createElement('div');d.className='who'+(st.gone?' left':'')+(S&&S.speaker===k?' on':'');
+    d.textContent=nm(k)+' · '+L.cast[k][1];
+    const bar=document.createElement('span');bar.className='bar';const i=document.createElement('i');
+    i.style.width=(st.gone?0:st.m)+'%';if(st.m<30)i.className='bad';bar.append(i);d.append(bar);box.append(d);
+  }
+}
+function ledger(){
+  if(!S){$('month').textContent='1/'+TOTAL;$('cash').textContent=money(36);$('cash').classList.remove('low');$('burn').textContent=money(6);$('cust').textContent='0';$('company').textContent=t().tag;return}
+  $('month').textContent=Math.min(S.month,TOTAL)+'/'+TOTAL;
+  $('cash').textContent=money(S.cash);$('cash').classList.toggle('low',S.cash<15);
+  $('burn').textContent=money(-net());$('cust').textContent=S.cust;
+  $('company').textContent=S.name+(lang==='zh'?'，':', ')+S.biz;
+}
+function staticText(){
+  const L=t();document.documentElement.lang=lang==='zh'?'zh-CN':'en';document.title=L.title;
+  $('h1').textContent=L.title;$('sfx').textContent=SFX.on?L.sfxOn:L.sfxOff;$('lang').textContent=L.sw;
+  $('lMonth').textContent=L.month;$('lCash').textContent=L.cashL;$('lBurn').textContent=L.burnL;$('lCust').textContent=L.custL;
+  $('intro').textContent=L.intro;$('lName').textContent=L.name;$('lWhat').textContent=L.what;$('open').textContent=L.open;
+  $('image').textContent=L.image;$('copy').textContent=L.copy;$('again').textContent=L.again;$('shotTip').textContent=L.shotTip;
+  $('dN').textContent=L.dN;$('dB').textContent=L.dB;$('dM').textContent=L.dM;$('dW').textContent=L.dW;
+  if($('cname').dataset.dirty!=='1')$('cname').value=L.defName;
+  if($('cbiz').dataset.dirty!=='1')$('cbiz').value=L.defBiz;
+  ledger();bars();
+  if(view)paint(false);
+  if(endInfo)fillCert();
+}
+function say(v){view=v;paint(true)}
+function paint(anim){
+  const L=t(),v=view,k=v.sp;
+  S.speaker=k==='narr'?S.speaker:k;
+  $('speaker').textContent=k==='narr'?L.narrator:k==='cat'?nm(k):nm(k)+(lang==='zh'?'（'+L.cast[k][1]+'）':' ('+L.cast[k][1]+')');
+  drawFace(k==='narr'?'me':k);
+  $('narr').textContent=v.narr?v.narr[lang]:'';
+  const text=v.line[lang],el=$('line');clearInterval(typing);typing=null;
+  const ch=$('choices');ch.textContent='';
+  const showOpts=()=>{ch.textContent='';
+    if(v.opts)v.opts.forEach((o,i)=>{const b=document.createElement('button');b.type='button';b.className='opt';const n=document.createElement('b');n.textContent='ABC'[i];b.append(n,o.t[lang]);b.onclick=()=>pick(o);ch.append(b)});
+    else{const b=document.createElement('button');b.type='button';b.className='go';b.textContent=L.next;b.onclick=()=>{SFX.next();v.then()};ch.append(b)}
+  };
+  bars();
+  if(!anim||reduce){el.textContent=text;showOpts();return}
+  let i=0;el.textContent='';
+  if(k==='cat')SFX.meow();
+  typing=setInterval(()=>{i++;el.textContent=text.slice(0,i);if(k!=='cat'&&i%4===0&&/[^\s，。？！：,.?!:]/.test(text[i-1]))SFX.blip(k);if(i>=text.length){clearInterval(typing);typing=null;showOpts()}},40);
+  $('talk').onclick=()=>{if(typing){clearInterval(typing);typing=null;el.textContent=text;showOpts()}};
+}
+function current(){
+  while(S.i<EV.length){
+    const e=EV[S.i];let sp=e.sp,line=e.line,opts=e.ch;
+    if(e.variants){const v=e.variants.find(x=>x.when(S)&&!S.p[x.sp||e.sp].gone);if(!v){S.i++;continue}
+      sp=v.sp||e.sp;line=v.line;opts=v.grudge?e.grudgeCh:(v.ch||e.ch)}
+    if(sp==='auto')sp=['ops','cto','cat'].find(k=>!S.p[k].gone)||'cat';
+    if(S.p[sp].gone){S.i++;continue}
+    return{sp,line,narr:e.narr,opts};
+  }
+  return null;
+}
+function nextEvent(){const ev=current();if(!ev){finish();return}say(ev)}
+function pick(o){
+  const fx=o.fx||{};SFX.pick();
+  if(o.flag)S.f[o.flag]=true;
+  S.cash+=fx.cash||0;S.cust=Math.max(0,S.cust+(fx.cust||0));
+  let drop=0;const quits=[];
+  for(const k of['cto','ops','inv','cat']){const d=fx[k]||0;if(d<drop)drop=d;const p=S.p[k];if(p.gone)continue;p.m=clamp(p.m+d,0,100);
+    if(p.m<=0){p.gone=true;quits.push(k);if(k!=='cat')walk[k]={x:LOOK[k].x};if(k==='inv')S.cash-=10}}
+  if(fx.cash<0)SFX.loss();else if(fx.cash>0)SFX.coin();if(drop<=-20)SFX.shake();
+  if(drop<=-20&&!reduce){const st=$('stage');st.classList.remove('shake');void st.offsetWidth;st.classList.add('shake')}
+  if(fx.cash)floats.push({txt:(fx.cash>0?'+':'')+money(fx.cash),x:160,y:96,col:fx.cash>0?'#58b58a':'#d9485f',life:70});
+  ledger();
+  const then=()=>{
+    if(quits.length){const k=quits.shift();SFX.quit();say({sp:'narr',line:{zh:T.zh.quit[k],en:T.en.quit[k]},then});return}
+    endMonth();
+  };
+  say({sp:o.r.sp,line:{zh:o.r.zh,en:o.r.en},then});
+}
+function endMonth(){
+  const n=net();S.cash=Math.round((S.cash+n)*10)/10;S.hist.push(S.cash);S.month++;S.i++;
+  floats.push({txt:(n>=0?'+':'')+money(n),x:160,y:96,col:n>=0?'#58b58a':'#d9485f',life:70});
+  ledger();
+  if(S.cash<=0||(S.p.cto.gone&&S.p.ops.gone)){finish();return}
+  nextEvent();
+}
+function finish(){
+  const f=S.f;
+  const dead=S.cash<=0||(S.p.cto.gone&&S.p.ops.gone);
+  const kind=dead?'dead':(f.catcto&&f.catstar?'cat':'won');
+  endInfo={kind,months:Math.min(S.month-(dead?1:0),TOTAL),people:S.p.cto.gone&&S.p.ops.gone,f:{...f}};
+  SFX[kind]();
+  fillCert();$('play').hidden=true;$('end').hidden=false;$('shot').hidden=true;view=null;
+}
+function fillCert(){
+  const L=t(),e=endInfo,f=e.f;
+  $('certTitle').textContent=e.kind==='dead'?L.dead:e.kind==='cat'?L.handover:L.alive;
+  $('stamp').textContent=e.kind==='dead'?L.stampD:e.kind==='cat'?L.stampC:L.stampA;
+  $('cN').textContent=S.name;$('cB').textContent=S.biz;$('cM').textContent=L.months(Math.max(1,e.months));
+  $('dC').textContent=e.kind==='dead'?L.dC:e.kind==='cat'?L.dC3:L.dC2;
+  $('cC').textContent=e.kind==='cat'?L.cCat:e.kind==='won'?L.cNext:e.people?L.cPeople:f.catpay?L.cMoneyCat:f.dream?L.cMoneyDream:L.cMoney;
+  $('cW').textContent=e.kind==='cat'?L.wCat:e.kind==='won'?L.wWon:f.catcto?L.wCatcto:f.dream?L.wDream:f.overtime?L.wOver:f.lie?L.wLie:f.catstar?L.wStar:L.wNone;
+}
+function begin(){
+  SFX.unlock();SFX.open();
+  S=fresh($('cname').value.trim()||t().noName,$('cbiz').value.trim()||t().noBiz);
+  endInfo=null;walk={};$('start').hidden=true;$('end').hidden=true;$('play').hidden=false;ledger();nextEvent();
+  $('stage').scrollIntoView({behavior:reduce?'auto':'smooth',block:'start'});
+}
+function wrap(g,text,w){const out=[];let line='';const parts=lang==='zh'?[...text]:text.split(/(\s+)/);
+  for(const p of parts){if(g.measureText(line+p).width>w&&line){out.push(line.trim());line=p.trim()?p:''}else line+=p}
+  if(line.trim())out.push(line.trim());return out}
+function makeImage(){
+  const L=t(),W=1080,cv=document.createElement('canvas');cv.width=W;cv.height=10;let g=cv.getContext('2d');
+  const sans='"Noto Sans SC","PingFang SC","Microsoft YaHei",system-ui,sans-serif',ttl='"ZCOOL QingKe HuangYou","Silkscreen",'+sans;
+  g.font='700 36px '+sans;
+  const rows=[['dN','cN'],['dB','cB'],['dM','cM'],['dC','cC'],['dW','cW']].map(([a,b])=>[$(a).textContent,wrap(g,$(b).textContent,860).slice(0,3)]);
+  const body=rows.reduce((n,r)=>n+40+r[1].length*48+14,0),H=Math.max(1350,690+body+170);
+  cv.height=H;g=cv.getContext('2d');
+  g.fillStyle='#1b2036';g.fillRect(0,0,W,H);
+  g.imageSmoothingEnabled=false;g.drawImage($('scene'),0,0,320,150,60,60,960,450);
+  g.fillStyle='#20182b';g.fillRect(60,540,960,H-600);g.fillStyle='#fbf3df';g.fillRect(70,550,940,H-620);
+  g.fillStyle='#20182b';let fs=64;g.font=fs+'px '+ttl;while(g.measureText($('certTitle').textContent).width>540&&fs>36){fs-=2;g.font=fs+'px '+ttl}g.textAlign='left';g.textBaseline='top';g.fillText($('certTitle').textContent,110,585+(64-fs)/2);
+  g.save();g.translate(830,625);g.rotate(-.17);g.strokeStyle='#d9485f';g.lineWidth=7;g.fillStyle='#d9485f';g.font='42px '+ttl;g.textAlign='center';g.textBaseline='middle';const sw=g.measureText($('stamp').textContent).width+36;g.strokeRect(-sw/2,-40,sw,80);g.fillText($('stamp').textContent,0,2);g.restore();
+  let y=690;g.textAlign='left';g.textBaseline='top';
+  for(const [lab,lines] of rows){g.fillStyle='#4a3b30';g.font='500 30px '+sans;g.fillText(lab,110,y);y+=40;
+    g.fillStyle='#20182b';g.font='700 36px '+sans;for(const l of lines){g.fillText(l,110,y);y+=48}y+=14}
+  g.fillStyle='#4a3b30';g.font='500 28px '+sans;const fy=Math.max(y+16,1190);g.fillText(L.cta,110,fy);g.fillText(SITE,110,fy+38);
+  return cv.toDataURL('image/png');
+}
+$('image').onclick=()=>{$('shotImg').alt=$('certTitle').textContent;$('shotImg').src=makeImage();$('shot').hidden=false;$('shot').scrollIntoView({behavior:reduce?'auto':'smooth',block:'nearest'})};
+$('copy').onclick=async()=>{const L=t(),x=$('certTitle').textContent+'\n'+L.dN+'：'+$('cN').textContent+'\n'+L.dB+'：'+$('cB').textContent+'\n'+L.dM+'：'+$('cM').textContent+'\n'+$('dC').textContent+'：'+$('cC').textContent+'\n'+L.dW+'：'+$('cW').textContent;
+  try{await navigator.clipboard.writeText(x);$('copy').textContent=L.copied}catch(e){const s=getSelection(),r=document.createRange();r.selectNodeContents($('cert'));s.removeAllRanges();s.addRange(r);$('copy').textContent=L.selected}
+  setTimeout(()=>{$('copy').textContent=t().copy},1800)};
+$('open').onclick=begin;
+$('again').onclick=()=>{S=null;endInfo=null;view=null;$('end').hidden=true;$('start').hidden=false;staticText()};
+$('sfx').onclick=()=>{SFX.toggle();$('sfx').textContent=SFX.on?t().sfxOn:t().sfxOff};
+$('lang').onclick=()=>{lang=lang==='zh'?'en':'zh';try{localStorage.setItem(KEY,lang)}catch(e){}staticText()};
+['cname','cbiz'].forEach(i=>$(i).addEventListener('input',()=>{$(i).dataset.dirty='1'}));
+staticText();
+requestAnimationFrame(draw);
+</script>
+
+</body>
+</html>
